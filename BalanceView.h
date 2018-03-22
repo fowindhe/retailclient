@@ -25,7 +25,11 @@ private:
     BaseButton  *_cashButton;
     QString             _cashStr;
     CommitNumFrame    *_cashNumFrame;
-
+    QTreeWidget *_treeView;
+    QList<QTreeWidgetItem*> _ticketitems;
+    QLabel *_ticketTitle;
+    QStringList tmpTickets;
+    int _pageNo;
 
     virtual void Connect();
     virtual void Disconnect();
@@ -39,7 +43,12 @@ public:
 private slots:
     void on_returnButton_clicked(int Val);
     void on_cashButton_clicked(int Val);
-    void    on_Numbox_changed(int Id, int Val);
+    void on_Numbox_changed(int Id, int Val);
+    void on_prePageButton_clicked(int Val);
+    void on_nextPageButton_clicked(int Val);
+    void on_clearCashButton_clicked(int Val);
+    void on_clearBalanceButton_clicked(int Val);
+
 
 };
 
