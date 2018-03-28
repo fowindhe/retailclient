@@ -109,7 +109,8 @@ void BalanceView::init(){
     _pageNoLabel->setText("第1页/共1页");
     _pageNoLabel->setFont(QFont("Timers",12,QFont::Bold));
     _pageNoLabel->move(261,520);
-
+    _pageNoLabel->adjustSize();
+    _pageNoLabel->show();
 
     _cashButton = new BaseButton(this);
     _cashNumFrame = new CommitNumFrame(this);
@@ -165,7 +166,7 @@ void BalanceView::init(){
     _treeView->move(11,264);
     _treeView->show();
     tmpTickets.clear();
-    for(int i=0;i<30;i++){
+    for(int i=0;i<31;i++){
 
         tmpTickets.append("超级大乐透,1,销售,10");
 
@@ -229,14 +230,16 @@ void BalanceView::Show(){
     _cashNumFrame->Hide();
     _ticketitems.clear();
     _pageNo=0;
-    for(int i=0;i<tmpTickets.size();i++){
-        BalanceTicket tmpBt;
-        tmpBt.name=tmpTickets[i].split(",")[0];
-        tmpBt.ticketCounts=tmpTickets[i].split(",")[1].toInt();
-        tmpBt.dealtype=tmpTickets[i].split(",")[2];
-        tmpBt.money=tmpTickets[i].split(",")[3].toInt();
-        RP->_balanceTickets.append(tmpBt);
-    }
+//    for(int i=0;i<tmpTickets.size();i++){
+//        BalanceTicket tmpBt;
+//        tmpBt.name=QString::number(i+1)+tmpTickets[i].split(",")[0];
+//        tmpBt.ticketCounts=tmpTickets[i].split(",")[1].toInt();
+//        tmpBt.dealtype=tmpTickets[i].split(",")[2];
+//        tmpBt.money=tmpTickets[i].split(",")[3].toInt();
+//        RP->_balanceTickets.append(tmpBt);
+//    }
+    _treeView->clear();
+    _ticketitems.clear();
     for(int i=0;i<RP->_balanceTickets.size();i++){
         if(i==10)
             break;
@@ -262,15 +265,14 @@ void BalanceView::Show(){
     _treeView->show();
     if(RP->_balanceTickets.size()%10==0)
         _pageNoLabel->setText(QString("第%1页/共%2页").arg(_pageNo+1).arg(RP->_balanceTickets.size()/10));
-    else     _pageNoLabel->setText(QString("第%1页/共%2页").arg(_pageNo+1).arg(RP->_balanceTickets.size()/10)+1);
-
+    else     _pageNoLabel->setText(QString("第%1页/共%2页").arg(_pageNo+1).arg(RP->_balanceTickets.size()/10+1));
+    _pageNoLabel->adjustSize();
 }
 void BalanceView::Reset(){
     return;
 }
 void BalanceView::on_returnButton_clicked(int Val){
-    GetController().Navigate(SLW_GAMEVIEW,&GetController(),RP);
-
+    GetController().Navigate(SLW_BACK,&GetController(),RP);
     return;
 
 }
@@ -348,11 +350,77 @@ void BalanceView::on_Numbox_changed(int Id, int Val)
 }
 
 void BalanceView::on_prePageButton_clicked(int Val){
+    _pageNo--;
+    if(_pageNo<0)
+        _pageNo=0;
+    _treeView->clear();
+    _ticketitems.clear();
+    for(int i=0;i<RP->_balanceTickets.size();i++){
+        if(i/10==_pageNo){
+            QTreeWidgetItem *item=new QTreeWidgetItem(_treeView);
+            item->setTextAlignment(0, Qt::AlignHCenter|Qt::AlignVCenter|Qt::AlignCenter);
+            item->setText(0,RP->_balanceTickets[i].name);
+            item->setTextAlignment(1, Qt::AlignHCenter|Qt::AlignVCenter|Qt::AlignCenter);
+            item->setText(1,"    "+RP->_balanceTickets[i].dealtype);
+            item->setTextAlignment(2, Qt::AlignRight|Qt::AlignRight|Qt::AlignRight);
+            item->setText(2,QString::number(RP->_balanceTickets[i].ticketCounts)+"               ");
+            item->setTextAlignment(3, Qt::AlignRight|Qt::AlignRight|Qt::AlignRight);
+            item->setText(3,QString::number(RP->_balanceTickets[i].money)+"               ");
+            if(i%2==1){
+                item->setBackgroundColor(0,QColor(239, 245, 253));
+                item->setBackgroundColor(1,QColor(239, 245, 253));
+                item->setBackgroundColor(2,QColor(239, 245, 253));
+                item->setBackgroundColor(3,QColor(239, 245, 253));
+            }
+            _ticketitems.append(item);
+        }
 
+    }
+    _treeView->addTopLevelItems(_ticketitems);
+    _treeView->show();
+    if(RP->_balanceTickets.size()%10==0)
+        _pageNoLabel->setText(QString("第%1页/共%2页").arg(_pageNo+1).arg(RP->_balanceTickets.size()/10));
+    else     _pageNoLabel->setText(QString("第%1页/共%2页").arg(_pageNo+1).arg(RP->_balanceTickets.size()/10+1));
+    _pageNoLabel->adjustSize();
 }
 void BalanceView::on_nextPageButton_clicked(int Val){
+    _pageNo++;
+    int pageTotalNo;
+    if(RP->_balanceTickets.size()%10==0){
+        pageTotalNo=RP->_balanceTickets.size()/10;
+    }
+    else pageTotalNo=RP->_balanceTickets.size()/10+1;
+    if(_pageNo==pageTotalNo)
+        _pageNo=pageTotalNo-1;
+    _treeView->clear();
+    _ticketitems.clear();
+    for(int i=0;i<RP->_balanceTickets.size();i++){
+        if(i/10==_pageNo){
+            QTreeWidgetItem *item=new QTreeWidgetItem(_treeView);
+            item->setTextAlignment(0, Qt::AlignHCenter|Qt::AlignVCenter|Qt::AlignCenter);
+            item->setText(0,RP->_balanceTickets[i].name);
+            item->setTextAlignment(1, Qt::AlignHCenter|Qt::AlignVCenter|Qt::AlignCenter);
+            item->setText(1,"    "+RP->_balanceTickets[i].dealtype);
+            item->setTextAlignment(2, Qt::AlignRight|Qt::AlignRight|Qt::AlignRight);
+            item->setText(2,QString::number(RP->_balanceTickets[i].ticketCounts)+"               ");
+            item->setTextAlignment(3, Qt::AlignRight|Qt::AlignRight|Qt::AlignRight);
+            item->setText(3,QString::number(RP->_balanceTickets[i].money)+"               ");
+            if(i%2==1){
+                item->setBackgroundColor(0,QColor(239, 245, 253));
+                item->setBackgroundColor(1,QColor(239, 245, 253));
+                item->setBackgroundColor(2,QColor(239, 245, 253));
+                item->setBackgroundColor(3,QColor(239, 245, 253));
+            }
+            _ticketitems.append(item);
+        }
 
-
+    }
+    _treeView->addTopLevelItems(_ticketitems);
+    _treeView->show();
+    if(RP->_balanceTickets.size()%10==0)
+        _pageNoLabel->setText(QString("第%1页/共%2页").arg(_pageNo+1).arg(RP->_balanceTickets.size()/10));
+    else     _pageNoLabel->setText(QString("第%1页/共%2页").arg(_pageNo+1).arg(RP->_balanceTickets.size()/10+1));
+    _pageNoLabel->adjustSize();
 }
 void BalanceView::on_clearBalanceButton_clicked(int Val){
 
