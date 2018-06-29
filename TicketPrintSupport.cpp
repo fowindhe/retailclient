@@ -15,11 +15,11 @@ TicketPrintSupport::TicketPrintSupport ( )
 TicketPrintSupport::~TicketPrintSupport ( )
 {
 }
-void TicketPrintSupport::formatLine(string &src,int lineCnt=1){
+ void TicketPrintSupport::formatLine(string &src,int lineCnt=1){
     if(src.size()>42*lineCnt){
-        QString tmpsa=QString::fromStdString(src);
+         QString tmpsa=QString::fromStdString(src);
         tmpsa=tmpsa.remove('\n');
-        int tmpcount=0;
+         int tmpcount=0;
         for(int i=0;i<tmpsa.size();i++){
             ushort uni=tmpsa.at(i).unicode();
             if(uni >127 ){
@@ -694,7 +694,7 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
     {
         if(selectType == 0)
         {
-            selectionsLineNo+= selections.size();
+
             for(int x = 0; x < selections.size(); x++)
             {
                 selections[x].replace(' ','s');
@@ -705,6 +705,7 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
             }
             printer->SetFont(0x01, 0x10, 0x01,msg);
             printer->SetFontMagnify(2,1,msg);
+            selectionsLineNo+= selections.size();
             if(selectionsLineNo==3){
                 printer->MarkFeed(3,msg);
                 selectionsLineNo+=2;
@@ -829,15 +830,25 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
         printer->SetFontBold(msg);
         if(selectType == 0)
         {
+             selectionsLineNo+= selections.size();
             if(subtype == 1)
             {
-                if(selections.size() == 1 || selectionType.contains("任选一"))
-                {
-                    printer->MarkFeed(3, msg);
+//                if(selections.size() == 1 || selectionType.contains("任选一"))
+//                {
+//                    printer->MarkFeed(3, msg);
+//                    selectionsLineNo+=2;
+//                }
+//                else
+//                {
+//                    printer->MarkFeed(2, msg);
+//                }
+                if(selectionsLineNo==3||selectionType.contains("任选一")){
+                    printer->MarkFeed(3,msg);
+                    selectionsLineNo+=2;
                 }
-                else
-                {
-                    printer->MarkFeed(2, msg);
+                else if(selectionsLineNo>3&&selectionsLineNo<7){
+                    printer->MarkFeed(2,msg);
+                    selectionsLineNo+=1;
                 }
                 for(i = 0; i < selections.size(); i++)
                 {
@@ -852,6 +863,8 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
             }
             else if(subtype == 7 || subtype == 5 || subtype == 8 || subtype == 6)
             {
+                printer->MarkFeed(2,msg);
+                selectionsLineNo+=1;
                 printer->SetFont(0x01, 0x10, 0x01,msg);
                 printer->SetFontMagnify(2,1,msg);
                 printer->SetFontBold(msg);
@@ -860,6 +873,7 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
                     if((i+1)*21<selections[0].size())
                     {
                         rsinfo += selections[0].mid(i*21,21)+"\n";
+                        selectionsLineNo+=1;
                     }
                     else
                     {
@@ -869,9 +883,10 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
                             rsinfo+=" ";
                         }
                         rsinfo+="\n";
+                        selectionsLineNo+=1;
                     }
                 }
-                printer->MarkFeed(2, msg);
+//                printer->MarkFeed(2, msg);
                 PrintGbkFromUtf8(printer,rsinfo.toStdString().c_str(),msg);
             }
             else if(subtype == 14)
@@ -881,6 +896,7 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
                 printer->SetFontBold(msg);
                 rsinfo += selections[0];
                 rsinfo += "\n";
+                selectionsLineNo+=1;
                 PrintGbkFromUtf8(printer,rsinfo.toStdString().c_str(),msg);
             }
         }
@@ -918,6 +934,7 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
                 }
                 printer->SetAlign(PrintCommand::ALIGN_CENTER,msg);
                 printer->MarkFeed(2, msg);
+                selectionsLineNo+=1;
                 PrintGbkFromUtf8(printer,rsinfo.toStdString().c_str(),msg);
 
                 rsinfo = "";
@@ -933,6 +950,7 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
                             for(int x = 0; x < 24 - selections[j].mid(i*24,24).size(); x++)
                                 rsinfo += " ";
                             rsinfo += "\n";
+                            selectionsLineNo+=1;
                         }
                         else
                         {
@@ -969,15 +987,27 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
                 qDebug()<<rsinfo;
                 PrintGbkFromUtf8(printer,rsinfo.toStdString().c_str(),msg);
             }
+            PrintGbkFromUtf8(printer,"\n",msg);
+            selectionsLineNo+=1;
         }
-        PrintGbkFromUtf8(printer,"\n",msg);
-        if(selections.size() == 1 || selectionType.contains("任选一"))
+
+        if(selectionsLineNo<7)
         {
-            r = printer->MarkFeed(3, msg);
+            printer->MarkFeed(8-selectionsLineNo, msg);
             PrintLine(printer,msg);
+            selectionsLineNo=8;
         }
-        else
+        else{
             PrintLine(printer,msg);
+            selectionsLineNo=8;
+        }
+//        if(selections.size() == 1 || selectionType.contains("任选一"))
+//        {
+//            r = printer->MarkFeed(3, msg);
+//            PrintLine(printer,msg);
+//        }
+//        else
+//            PrintLine(printer,msg);
     }
     else if(GameID == 4 || GameID == 1 || GameID == 3)
     {
@@ -1115,8 +1145,18 @@ int TicketPrintSupport::newPrintTicketInfo( ReceiptPrinter* printer, char* msg )
         QString Fillchar = ".  .  .  .  .  .  .  .  ";
         if(selectionType == "单式票")
         {
+            if(selectionsLineNo==3){
+                printer->MarkFeed(3,msg);
+                selectionsLineNo+=2;
+            }
+            else if(selectionsLineNo<7){
+                printer->MarkFeed(2,msg);
+                selectionsLineNo+=1;
+            }
             PrintGbkFromUtf8(printer,selections[0].toStdString().c_str(),msg);
             printer->SetFontBold(msg);
+            selectionsLineNo+=selections.size();
+
             for(i = 1; i < selections.size(); i++)
             {
                 PrintGbkFromUtf8(printer,selections[i].toStdString().c_str(),msg);
